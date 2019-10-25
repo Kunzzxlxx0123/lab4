@@ -1,0 +1,74 @@
+package lab4;
+
+import java.net.*;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Vector;
+public class DatagramServer {
+    
+    public static void sortASC(int [] arr) {
+        int temp = arr[0];
+        for (int i = 0 ; i < arr.length - 1; i++) {
+            for (int j = i + 1; j < arr.length; j++) {
+                if (arr[i] > arr[j]) {
+                    temp = arr[j];
+                    arr[j] = arr[i];
+                    arr[i] = temp;
+                }
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        DatagramPacket datapacket, returnpacket;
+        int port = 2018;
+        int len = 1024;
+        try {
+            DatagramSocket datasocket = new DatagramSocket(port);
+            byte[] buf = new byte[len];
+            datapacket = new DatagramPacket(buf, buf.length);
+            while (true) {
+                try {
+                    datasocket.receive(datapacket);
+                    
+                    
+                    String getData = new String(datapacket.getData(), 0, datapacket.getLength());
+                    String[] data = getData.split("\\s");
+                    
+                    int[] numbers = new int[data.length];
+                    for(int i=0; i<numbers.length; i++){
+                        numbers[i] = Integer.parseInt(data[i].trim());
+                    }
+                    sortASC(numbers);
+                    //for(int number : numbers){
+                    //    System.out.print(number + " ");
+                    //}
+                    Vector<Integer> chan = new Vector<>();
+                    Vector<Integer> le = new Vector<>();
+                    
+                    for(int number : numbers){
+                        if(number%2!=0) le.add(number);
+                        else chan.add(number);
+                    }
+                    le.addAll(chan);
+                    String rData = "";
+                    for(int num:le){
+                        System.out.print(Integer.toString(num));
+                        rData = rData + Integer.toString(num) + " ";
+                    }
+                    System.out.println(rData);
+                    returnpacket = new DatagramPacket(
+                            rData.getBytes(),
+                            rData.length() -1,
+                            datapacket.getAddress(),
+                            datapacket.getPort());
+                    datasocket.send(returnpacket);
+                } catch (IOException e) {
+                    System.err.println(e);
+                }
+            }
+        } catch (SocketException se) {
+            System.err.println(se);
+        }
+    }
+}
